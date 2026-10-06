@@ -1,0 +1,28 @@
+# Composer & Dependencies
+/vendor/
+node_modules/
+
+# Environment & Config
+.env
+.env.backup
+.env.production
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Storage & Temporary artifacts
+storage/logs/*.log
+storage/cache/*
+storage/temp/*
+tests/cookie.txt
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
