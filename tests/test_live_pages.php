@@ -115,7 +115,9 @@ $pagesToTest = [
     '/inventory/receive' => 'Stock Receive Form',
     '/roles' => 'RBAC Role Management & Permission Matrix',
     '/change-password' => 'Change Account Password Form',
-    '/customer-portal/dashboard' => 'B2B Customer Portal'
+    '/customer-portal/dashboard' => 'B2B Customer Portal',
+    '/customers/statement/1' => 'Customer Financial Statement & Ledger',
+    '/suppliers/statement/1' => 'Vendor Statement of Account & Ledger'
 ];
 
 echo "\n[4] Verifying All Modified Pages and Forms...\n";

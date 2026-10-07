@@ -4,16 +4,22 @@
         <h3 class="page-header-title"><i class="bi bi-box-seam-fill me-2" style="color:var(--primary)"></i>Product Master & Catalog</h3>
         <p class="page-header-sub">Comprehensive product catalog with SKUs, barcodes, categories, valuation methods, and bin stock</p>
     </div>
-    <?php if (has_permission('products.create')): ?>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <a href="<?= url('/products/export') ?>" class="btn btn-outline-success btn-sm fw-bold shadow-sm" title="Export Complete Catalog to Excel / CSV">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+        </a>
+        <?php if (has_permission('products.create')): ?>
+        <button type="button" class="btn btn-outline-primary btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#importProductModal" title="Bulk Import Products via CSV">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Bulk Import
+        </button>
         <button type="button" class="btn btn-outline-info btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
             <i class="bi bi-folder-plus me-1"></i> + Create Category
         </button>
-        <a href="<?= url('/products/create') ?>" class="btn btn-primary btn-sm fw-bold">
+        <a href="<?= url('/products/create') ?>" class="btn btn-primary btn-sm fw-bold text-white shadow-sm" style="background-image:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
             <i class="bi bi-plus-lg me-1"></i> + Add New Product
         </a>
+        <?php endif; ?>
     </div>
-    <?php endif; ?>
 </div>
 
 <?php if (($_GET['filter'] ?? '') !== 'low_stock'): ?>
@@ -431,6 +437,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-warning btn-sm fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Save Brand</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Bulk Import Products from CSV -->
+<div class="modal fade" id="importProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cloud-arrow-up-fill me-2" style="color:var(--primary)"></i>Bulk Import Products from CSV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="<?= url('/products/import') ?>" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 px-3 small rounded-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-info-circle-fill me-1"></i> Download sample template first to format your data:
+                            </div>
+                            <a href="<?= url('/products/import/template') ?>" class="btn btn-sm btn-info text-dark fw-bold ms-2 px-2.5 py-1">
+                                <i class="bi bi-download me-1"></i> Sample CSV
+                            </a>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Select CSV File (.csv) *</label>
+                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                        <div class="form-text small">Supports columns: Product Name, SKU, Barcode, Category, Brand, Unit, Purchase Rate, Sale Rate, Tax Rate, Opening Stock, HSN Code.</div>
+                    </div>
+                    <div class="p-2.5 rounded-3 bg-light border small text-secondary">
+                        <i class="bi bi-magic text-primary me-1"></i> <strong>Smart Auto-Handling:</strong>
+                        <ul class="mb-0 ps-3 mt-1">
+                            <li>Auto-creates categories/brands if not already in system</li>
+                            <li>Auto-generates missing SKUs and Barcodes</li>
+                            <li>Automatically populates opening inventory stocks</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold text-white" style="background-image:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                        <i class="bi bi-cloud-upload-fill me-1"></i> Upload & Import Catalog
+                    </button>
                 </div>
             </form>
         </div>

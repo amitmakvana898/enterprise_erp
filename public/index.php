@@ -84,6 +84,9 @@ $app->router->post('/profile/change-password', [ProfileController::class, 'updat
 
 // Product Master & Dynamic Attributes
 $app->router->get('/products', [ProductController::class, 'index'], [AuthMiddleware::class]);
+$app->router->get('/products/export', [ProductController::class, 'exportCsv'], [AuthMiddleware::class]);
+$app->router->get('/products/import/template', [ProductController::class, 'downloadTemplate'], [AuthMiddleware::class]);
+$app->router->post('/products/import', [ProductController::class, 'importCsv'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $app->router->get('/products/create', [ProductController::class, 'create'], [AuthMiddleware::class]);
 $app->router->post('/products/store', [ProductController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $app->router->get('/products/edit/{id}', [ProductController::class, 'edit'], [AuthMiddleware::class]);
@@ -108,6 +111,7 @@ $app->router->post('/attributes/store-value', [AttributeController::class, 'stor
 
 // Suppliers
 $app->router->get('/suppliers', [SupplierController::class, 'index'], [AuthMiddleware::class]);
+$app->router->get('/suppliers/statement/{id}', [SupplierController::class, 'statement'], [AuthMiddleware::class]);
 $app->router->get('/suppliers/create', [SupplierController::class, 'create'], [AuthMiddleware::class]);
 $app->router->post('/suppliers/store', [SupplierController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
 
@@ -155,6 +159,7 @@ $app->router->get('/procurement/returns/invoice/{id}', [PurchaseController::clas
 
 // Inventory & Warehouse Transfers
 $app->router->get('/inventory', [InventoryController::class, 'index'], [AuthMiddleware::class]);
+$app->router->get('/inventory/export', [InventoryController::class, 'exportCsv'], [AuthMiddleware::class]);
 $app->router->get('/inventory/opening', [InventoryController::class, 'openingStock'], [AuthMiddleware::class]);
 $app->router->post('/inventory/opening/store', [InventoryController::class, 'storeOpeningStock'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $app->router->get('/inventory/issue', [InventoryController::class, 'stockIssue'], [AuthMiddleware::class]);
@@ -179,9 +184,11 @@ $app->router->get('/transfers/receive/{id}', [TransferController::class, 'receiv
 
 // Sales & Customers
 $app->router->get('/customers', [CustomerController::class, 'index'], [AuthMiddleware::class]);
+$app->router->get('/customers/statement/{id}', [CustomerController::class, 'statement'], [AuthMiddleware::class]);
 $app->router->get('/customers/create', [CustomerController::class, 'create'], [AuthMiddleware::class]);
 $app->router->post('/customers/store', [CustomerController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $app->router->get('/sales', [SalesController::class, 'index'], [AuthMiddleware::class]);
+$app->router->get('/sales/export', [SalesController::class, 'exportCsv'], [AuthMiddleware::class]);
 $app->router->get('/sales/create', [SalesController::class, 'create'], [AuthMiddleware::class]);
 $app->router->post('/sales/store', [SalesController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $app->router->get('/sales/quotations', [SalesController::class, 'quotations'], [AuthMiddleware::class]);

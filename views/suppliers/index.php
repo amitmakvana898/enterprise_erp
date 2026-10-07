@@ -17,6 +17,7 @@
                     <th>Credit Limit</th>
                     <th>Payment Terms</th>
                     <th>Rating</th>
+                    <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,11 +36,21 @@
                             <td class="fw-semibold font-monospace"><?= format_currency($s['credit_limit']) ?></td>
                             <td><span class="badge bg-secondary-subtle text-secondary"><?= e($s['payment_terms']) ?></span></td>
                             <td><span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-40 fw-bold"><i class="bi bi-star-fill me-1"></i><?= e($s['rating']) ?></span></td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1.5 align-items-center">
+                                    <a href="<?= url('/suppliers/statement/' . $s['id']) ?>" class="btn btn-outline-success btn-sm fw-bold px-2.5 py-1 rounded-2 shadow-sm" title="View Vendor Financial Statement & Payables Ledger">
+                                        <i class="bi bi-receipt-cutoff me-1"></i> Statement
+                                    </a>
+                                    <a href="<?= url('/procurement/orders/create?supplier_id=' . $s['id']) ?>" class="btn btn-outline-primary btn-sm fw-bold px-2.5 py-1 rounded-2 shadow-sm" title="Issue Purchase Order (PO)">
+                                        <i class="bi bi-cart-plus me-1"></i> New PO
+                                    </a>
+                                </div>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" class="text-center text-secondary py-4">No suppliers registered.</td>
+                        <td colspan="7" class="text-center text-secondary py-4">No suppliers registered.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

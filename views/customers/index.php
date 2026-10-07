@@ -124,10 +124,13 @@
                             </td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-2 align-items-center">
-                                    <a href="<?= url('/sales/create?customer_id=' . $c['id']) ?>" class="btn btn-outline-primary btn-sm fw-bold px-3 py-1.5 rounded-2 shadow-sm">
+                                    <a href="<?= url('/customers/statement/' . $c['id']) ?>" class="btn btn-outline-success btn-sm fw-bold px-2.5 py-1.5 rounded-2 shadow-sm" title="View Financial Statement & Account Ledger">
+                                        <i class="bi bi-receipt-cutoff me-1"></i> Statement
+                                    </a>
+                                    <a href="<?= url('/sales/create?customer_id=' . $c['id']) ?>" class="btn btn-outline-primary btn-sm fw-bold px-2.5 py-1.5 rounded-2 shadow-sm">
                                         <i class="bi bi-cart-plus me-1"></i> New SO
                                     </a>
-                                    <a href="<?= url('/sales/create-quotation?customer_id=' . $c['id']) ?>" class="btn btn-outline-info btn-sm fw-bold px-3 py-1.5 rounded-2 shadow-sm">
+                                    <a href="<?= url('/sales/create-quotation?customer_id=' . $c['id']) ?>" class="btn btn-outline-info btn-sm fw-bold px-2.5 py-1.5 rounded-2 shadow-sm">
                                         <i class="bi bi-file-earmark-text me-1"></i> Quote
                                     </a>
                                 </div>

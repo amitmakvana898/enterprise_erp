@@ -4,6 +4,9 @@
         <h3 class="fw-bold rbac-heading mb-0"><i class="bi bi-cart-check-fill text-warning me-2"></i>Sales Management & Order-to-Cash (O2C) Pipeline</h3>
     </div>
     <div class="d-flex flex-wrap align-items-center gap-2">
+        <a href="<?= url('/sales/export') ?>" class="btn btn-outline-success btn-sm fw-bold shadow-sm" title="Export Sales Orders & Invoices to CSV">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+        </a>
         <a href="<?= url('/sales/quotations/create') ?>" class="btn btn-outline-info btn-sm fw-bold">
             <i class="bi bi-file-earmark-plus me-1"></i> + Create Quotation
         </a>

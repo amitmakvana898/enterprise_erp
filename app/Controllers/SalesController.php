@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Warehouse;
 use App\Services\AuditService;
+use App\Services\ExcelExportService;
 use Exception;
 
 class SalesController extends Controller {
@@ -902,4 +903,56 @@ class SalesController extends Controller {
             'payments' => $payments
         ]);
     }
+
+    /**
+     * Export Sales Orders / Invoices to CSV
+     */
+    public function exportCsv(): void {
+        if (!has_permission('sales.read')) {
+            Session::setFlash('error', 'Access Denied: You do not have permission to export sales data!', 'danger');
+            (new Response())->redirect(url('/sales'));
+            return;
+        }
+
+        $db = Database::getInstance();
+        $orders = $db->query("
+            SELECT so.id, so.order_no, c.name AS customer_name, w.name AS warehouse_name,
+                   so.order_date, so.total_amount, so.tax_amount, so.status,
+                   si.invoice_no, si.status AS invoice_status,
+                   sp.payment_mode, sp.amount AS paid_amount
+            FROM sales_orders so
+            JOIN customers c ON so.customer_id = c.id
+            JOIN warehouses w ON so.warehouse_id = w.id
+            LEFT JOIN sales_invoices si ON si.order_id = so.id
+            LEFT JOIN sales_payments sp ON sp.invoice_id = si.id
+            ORDER BY so.id DESC
+        ")->fetchAll();
+
+        $headers = [
+            'Order ID', 'Sales Order No', 'Customer Name', 'Fulfillment Warehouse',
+            'Order Date', 'Total Amount (INR)', 'Tax Amount (INR)', 'Order Status',
+            'Tax Invoice No', 'Invoice Status', 'Payment Mode', 'Settled Amount (INR)'
+        ];
+
+        $data = [];
+        foreach ($orders as $o) {
+            $data[] = [
+                $o['id'],
+                $o['order_no'],
+                $o['customer_name'],
+                $o['warehouse_name'],
+                $o['order_date'],
+                $o['total_amount'],
+                $o['tax_amount'],
+                strtoupper($o['status']),
+                $o['invoice_no'] ?? 'N/A',
+                strtoupper($o['invoice_status'] ?? 'PENDING'),
+                strtoupper($o['payment_mode'] ?? 'UNPAID'),
+                $o['paid_amount'] ?? 0
+            ];
+        }
+
+        ExcelExportService::downloadCsv('enterprise_erp_sales_orders_' . date('Ymd_His'), $headers, $data);
+    }
 }
+

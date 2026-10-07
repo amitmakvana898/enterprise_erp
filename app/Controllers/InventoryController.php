@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\Warehouse;
 use App\Services\InventoryValuationService;
 use App\Services\AuditService;
+use App\Services\ExcelExportService;
 use Exception;
 
 class InventoryController extends Controller {
@@ -635,4 +636,57 @@ class InventoryController extends Controller {
         }
         $this->render('inventory/valuation', ['title' => 'Inventory Valuation Engine (FIFO / LIFO / Weighted Avg)', 'valuations' => $valuations]);
     }
+
+    /**
+     * Export Inventory Stock Levels & Bin Locations to CSV
+     */
+    public function exportCsv(): void {
+        if (!has_permission('inventory.read')) {
+            Session::setFlash('error', 'Access Denied: You do not have permission to export inventory!', 'danger');
+            (new Response())->redirect(url('/inventory'));
+            return;
+        }
+
+        $db = Database::getInstance();
+        $stocks = $db->query("
+            SELECT s.id, p.name AS product_name, p.sku, p.barcode, c.name AS category_name,
+                   w.name AS warehouse_name, bn.code AS bin_code,
+                   s.batch_no, s.mfg_date, s.exp_date, s.qty, p.purchase_rate,
+                   (s.qty * p.purchase_rate) AS total_valuation
+            FROM inventory_stocks s
+            JOIN products p ON s.product_id = p.id
+            LEFT JOIN categories c ON p.category_id = c.id
+            JOIN warehouses w ON s.warehouse_id = w.id
+            LEFT JOIN bins bn ON s.bin_id = bn.id
+            ORDER BY p.name ASC, w.name ASC
+        ")->fetchAll();
+
+        $headers = [
+            'Record ID', 'Product Name', 'SKU', 'Barcode', 'Category',
+            'Warehouse', 'Bin Location', 'Batch No', 'Mfg Date', 'Expiry Date',
+            'Quantity in Stock', 'Unit Cost (INR)', 'Total Valuation (INR)'
+        ];
+
+        $data = [];
+        foreach ($stocks as $s) {
+            $data[] = [
+                $s['id'],
+                $s['product_name'],
+                $s['sku'],
+                $s['barcode'] ?? '',
+                $s['category_name'] ?? 'General',
+                $s['warehouse_name'],
+                $s['bin_code'] ?? 'MAIN-STORAGE',
+                $s['batch_no'] ?? 'N/A',
+                $s['mfg_date'] ?? 'N/A',
+                $s['exp_date'] ?? 'N/A',
+                $s['qty'],
+                $s['purchase_rate'],
+                $s['total_valuation']
+            ];
+        }
+
+        ExcelExportService::downloadCsv('enterprise_erp_inventory_stock_' . date('Ymd_His'), $headers, $data);
+    }
 }
+

@@ -14,6 +14,7 @@ use App\Models\Unit;
 use App\Helpers\Validator;
 use App\Services\AuditService;
 use App\Services\SeederService;
+use App\Services\ExcelExportService;
 
 class ProductController extends Controller {
     public function index(): void {
@@ -715,4 +716,258 @@ class ProductController extends Controller {
         ]);
         exit;
     }
+
+    /**
+     * Export all Products to CSV
+     */
+    public function exportCsv(): void {
+        if (!has_permission('products.read')) {
+            Session::setFlash('error', 'Access Denied: You do not have permission to export products!', 'danger');
+            (new Response())->redirect(url('/products'));
+            return;
+        }
+
+        $db = Database::getInstance();
+        $products = $db->query("
+            SELECT p.id, p.name, p.sku, p.barcode, c.name AS category_name, b.name AS brand_name, u.code AS unit_code,
+                   p.purchase_rate, p.sale_rate, p.tax_rate, p.hsn_code, p.reorder_level,
+                   COALESCE(SUM(s.qty), 0) AS total_stock,
+                   IF(p.is_active = 1, 'Active', 'Inactive') AS status
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            LEFT JOIN brands b ON p.brand_id = b.id
+            LEFT JOIN units u ON p.unit_id = u.id
+            LEFT JOIN inventory_stocks s ON p.id = s.product_id
+            GROUP BY p.id
+            ORDER BY p.id ASC
+        ")->fetchAll();
+
+        $headers = [
+            'ID', 'Product Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit',
+            'Purchase Rate (INR)', 'Sale Rate (INR)', 'Tax Rate (%)', 'HSN Code',
+            'Reorder Level', 'Current Stock', 'Status'
+        ];
+
+        $data = [];
+        foreach ($products as $p) {
+            $data[] = [
+                $p['id'],
+                $p['name'],
+                $p['sku'],
+                $p['barcode'] ?? '',
+                $p['category_name'] ?? 'General',
+                $p['brand_name'] ?? 'Generic',
+                $p['unit_code'] ?? 'PCS',
+                $p['purchase_rate'],
+                $p['sale_rate'],
+                $p['tax_rate'],
+                $p['hsn_code'] ?? '',
+                $p['reorder_level'] ?? 5,
+                $p['total_stock'],
+                $p['status']
+            ];
+        }
+
+        ExcelExportService::downloadCsv('enterprise_erp_products_' . date('Ymd_His'), $headers, $data);
+    }
+
+    /**
+     * Download Sample CSV Template for Bulk Product Import
+     */
+    public function downloadTemplate(): void {
+        $headers = [
+            'Product Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit',
+            'Purchase Rate', 'Sale Rate', 'Tax Rate', 'Opening Stock', 'HSN Code', 'Description'
+        ];
+
+        $sampleRows = [
+            [
+                'Cotton Polo T-Shirt Premium', 'SKU-POLO-001', '890123456701', 'Clothing', 'Zara', 'PCS',
+                '350.00', '799.00', '5.00', '50', '61091000', '100% Cotton Polo Fit T-Shirt'
+            ],
+            [
+                'Gaming Laptop Pro 16GB', 'SKU-LAP-992', '890123456702', 'Electronics', 'Dell', 'PCS',
+                '45000.00', '58999.00', '18.00', '10', '84713010', 'High performance Intel i7 Laptop'
+            ],
+            [
+                'Industrial Power Drill 750W', 'SKU-DRL-500', '890123456703', 'Hardware & Tools', 'Bosch', 'PCS',
+                '2200.00', '3499.00', '18.00', '25', '84672100', 'Heavy duty electric impact drill'
+            ]
+        ];
+
+        ExcelExportService::downloadTemplate('products_import_template', $headers, $sampleRows);
+    }
+
+    /**
+     * Bulk Import Products from Uploaded CSV
+     */
+    public function importCsv(Request $request): void {
+        if (!has_permission('products.create')) {
+            Session::setFlash('error', 'Access Denied: You do not have permission to import products!', 'danger');
+            (new Response())->redirect(url('/products'));
+            return;
+        }
+
+        if (empty($_FILES['csv_file']['tmp_name'])) {
+            Session::setFlash('error', 'Please choose a valid .csv file to import!', 'danger');
+            (new Response())->redirect(url('/products'));
+            return;
+        }
+
+        $tmpFile = $_FILES['csv_file']['tmp_name'];
+        $rows = ExcelExportService::parseCsv($tmpFile);
+
+        if (empty($rows)) {
+            Session::setFlash('error', 'The uploaded CSV file is empty or formatted incorrectly!', 'danger');
+            (new Response())->redirect(url('/products'));
+            return;
+        }
+
+        $db = Database::getInstance();
+        $importedCount = 0;
+        $updatedCount = 0;
+
+        // Fetch lookup dictionaries
+        $categoriesMap = [];
+        foreach ($db->query("SELECT id, LOWER(name) AS lname FROM categories")->fetchAll() as $c) {
+            $categoriesMap[$c['lname']] = $c['id'];
+        }
+
+        $brandsMap = [];
+        foreach ($db->query("SELECT id, LOWER(name) AS lname FROM brands")->fetchAll() as $b) {
+            $brandsMap[$b['lname']] = $b['id'];
+        }
+
+        $unitsMap = [];
+        foreach ($db->query("SELECT id, LOWER(code) AS lcode, LOWER(name) AS lname FROM units")->fetchAll() as $u) {
+            $unitsMap[$u['lcode']] = $u['id'];
+            $unitsMap[$u['lname']] = $u['id'];
+        }
+
+        // Get default warehouse for opening stock
+        $defaultWh = $db->query("SELECT id FROM warehouses ORDER BY id ASC LIMIT 1")->fetch();
+        $defaultWhId = $defaultWh ? $defaultWh['id'] : 1;
+
+        $db->beginTransaction();
+        try {
+            foreach ($rows as $r) {
+                $name = trim($r['product_name'] ?? $r['name'] ?? '');
+                if (empty($name)) {
+                    continue;
+                }
+
+                $sku = trim($r['sku'] ?? '');
+                if (empty($sku)) {
+                    $sku = 'SKU-' . strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 4)) . '-' . rand(1000, 9999);
+                }
+
+                $barcode = trim($r['barcode'] ?? '');
+                if (empty($barcode)) {
+                    $barcode = '890' . rand(100000000, 999999999);
+                }
+
+                // Category match or auto-create
+                $catName = trim($r['category'] ?? $r['category_name'] ?? 'General');
+                $catKey = strtolower($catName);
+                if (!isset($categoriesMap[$catKey])) {
+                    $cStmt = $db->prepare("INSERT INTO categories (name, slug, description) VALUES (:name, :slug, :desc)");
+                    $cStmt->execute(['name' => $catName, 'slug' => strtolower(preg_replace('/[^a-zA-Z0-9]/', '-', $catName)), 'desc' => 'Auto-imported Category']);
+                    $newCatId = $db->lastInsertId();
+                    $categoriesMap[$catKey] = $newCatId;
+                }
+                $categoryId = $categoriesMap[$catKey];
+
+                // Brand match or auto-create
+                $brandName = trim($r['brand'] ?? $r['brand_name'] ?? 'Generic');
+                $brandKey = strtolower($brandName);
+                if (!isset($brandsMap[$brandKey])) {
+                    $bStmt = $db->prepare("INSERT INTO brands (name) VALUES (:name)");
+                    $bStmt->execute(['name' => $brandName]);
+                    $newBrandId = $db->lastInsertId();
+                    $brandsMap[$brandKey] = $newBrandId;
+                }
+                $brandId = $brandsMap[$brandKey];
+
+                // Unit match
+                $unitCode = strtolower(trim($r['unit'] ?? $r['unit_code'] ?? 'pcs'));
+                $unitId = $unitsMap[$unitCode] ?? (isset($unitsMap['pcs']) ? $unitsMap['pcs'] : 1);
+
+                $purchaseRate = (float)($r['purchase_rate'] ?? $r['cost_price'] ?? 0);
+                $saleRate = (float)($r['sale_rate'] ?? $r['selling_price'] ?? ($purchaseRate * 1.3));
+                $taxRate = (float)($r['tax_rate'] ?? $r['tax'] ?? 18);
+                $openingStock = (int)($r['opening_stock'] ?? $r['stock'] ?? 0);
+                $hsnCode = trim($r['hsn_code'] ?? $r['hsn'] ?? '');
+                $description = trim($r['description'] ?? '');
+
+                // Check if product exists by SKU
+                $chk = $db->prepare("SELECT id FROM products WHERE sku = :sku LIMIT 1");
+                $chk->execute(['sku' => $sku]);
+                $existing = $chk->fetch();
+
+                if ($existing) {
+                    $uStmt = $db->prepare("
+                        UPDATE products 
+                        SET name = :name, barcode = :barcode, category_id = :cat, brand_id = :brand, unit_id = :unit,
+                            purchase_rate = :pr, sale_rate = :sr, tax_rate = :tr, hsn_code = :hsn, description = :desc, updated_at = NOW()
+                        WHERE id = :id
+                    ");
+                    $uStmt->execute([
+                        'name' => $name, 'barcode' => $barcode, 'cat' => $categoryId, 'brand' => $brandId, 'unit' => $unitId,
+                        'pr' => $purchaseRate, 'sr' => $saleRate, 'tr' => $taxRate, 'hsn' => $hsnCode, 'desc' => $description,
+                        'id' => $existing['id']
+                    ]);
+                    $productId = $existing['id'];
+                    $updatedCount++;
+                } else {
+                    $iStmt = $db->prepare("
+                        INSERT INTO products (name, sku, barcode, category_id, brand_id, unit_id, purchase_rate, sale_rate, tax_rate, hsn_code, description, is_active, created_at, updated_at)
+                        VALUES (:name, :sku, :barcode, :cat, :brand, :unit, :pr, :sr, :tr, :hsn, :desc, 1, NOW(), NOW())
+                    ");
+                    $iStmt->execute([
+                        'name' => $name, 'sku' => $sku, 'barcode' => $barcode, 'cat' => $categoryId, 'brand' => $brandId, 'unit' => $unitId,
+                        'pr' => $purchaseRate, 'sr' => $saleRate, 'tr' => $taxRate, 'hsn' => $hsnCode, 'desc' => $description
+                    ]);
+                    $productId = $db->lastInsertId();
+                    $importedCount++;
+                }
+
+                // If opening stock provided, initialize inventory
+                if ($openingStock > 0) {
+                    $stkChk = $db->prepare("SELECT id FROM inventory_stocks WHERE product_id = :pid AND warehouse_id = :wid LIMIT 1");
+                    $stkChk->execute(['pid' => $productId, 'wid' => $defaultWhId]);
+                    $stkRow = $stkChk->fetch();
+
+                    if ($stkRow) {
+                        $db->prepare("UPDATE inventory_stocks SET qty = qty + :qty, updated_at = NOW() WHERE id = :id")
+                           ->execute(['qty' => $openingStock, 'id' => $stkRow['id']]);
+                    } else {
+                        $db->prepare("INSERT INTO inventory_stocks (product_id, warehouse_id, qty, updated_at) VALUES (:pid, :wid, :qty, NOW())")
+                           ->execute(['pid' => $productId, 'wid' => $defaultWhId, 'qty' => $openingStock]);
+                    }
+
+                    // Stock transaction ledger
+                    $db->prepare("
+                        INSERT INTO inventory_transactions (product_id, warehouse_id, transaction_type, qty, reference_no, notes, created_at)
+                        VALUES (:pid, :wid, 'OPENING', :qty, :ref, :notes, NOW())
+                    ")->execute([
+                        'pid' => $productId,
+                        'wid' => $defaultWhId,
+                        'qty' => $openingStock,
+                        'ref' => 'CSV-IMPORT',
+                        'notes' => 'Bulk CSV Opening Stock Import'
+                    ]);
+                }
+            }
+
+            $db->commit();
+            AuditService::log('PRODUCT_BULK_IMPORT', "Bulk imported {$importedCount} new products, updated {$updatedCount} products via CSV.");
+            Session::setFlash('success', "🎉 Successfully imported {$importedCount} new products and updated {$updatedCount} items!", 'success');
+        } catch (\Exception $e) {
+            $db->rollBack();
+            Session::setFlash('error', 'Bulk import failed: ' . $e->getMessage(), 'danger');
+        }
+
+        (new Response())->redirect(url('/products'));
+    }
 }
+
