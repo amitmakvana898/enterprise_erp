@@ -257,6 +257,7 @@ $app->router->post('/roles/revoke-all', [RoleController::class, 'revokeAllPermis
 $app->router->get('/barcode', [BarcodeController::class, 'index'], [AuthMiddleware::class]);
 $app->router->get('/barcode/generate', [BarcodeController::class, 'generate'], [AuthMiddleware::class]);
 $app->router->get('/reports', [ReportController::class, 'index'], [AuthMiddleware::class]);
+$app->router->get('/reports/gst', [ReportController::class, 'gst'], [AuthMiddleware::class]);
 $app->router->get('/analytics', [AnalyticsController::class, 'index'], [AuthMiddleware::class]);
 $app->router->post('/reports', [ReportController::class, 'index'], [AuthMiddleware::class]);
 $app->router->get('/reports/export', [ReportController::class, 'exportCsv'], [AuthMiddleware::class]);

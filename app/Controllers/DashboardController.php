@@ -33,6 +33,34 @@ class DashboardController extends Controller {
             return;
         }
 
+        $range = $_GET['range'] ?? 'this_month';
+        $startDate = null;
+        $endDate = date('Y-m-d');
+
+        switch ($range) {
+            case 'today':
+                $startDate = date('Y-m-d');
+                break;
+            case 'this_week':
+                $startDate = date('Y-m-d', strtotime('monday this week'));
+                break;
+            case 'this_year':
+                $startDate = date('Y-01-01');
+                break;
+            case 'all':
+                $startDate = '2000-01-01';
+                break;
+            case 'this_month':
+            default:
+                $range = 'this_month';
+                $startDate = date('Y-m-01');
+                break;
+        }
+
+        // Filtered Dynamic Purchases & Sales based on selected Date Range
+        $rangePurchase = (float) $db->query("SELECT SUM(total_amount) FROM purchase_orders WHERE DATE(created_at) BETWEEN '{$startDate}' AND '{$endDate}' AND status != 'cancelled'")->fetchColumn() ?: 0.00;
+        $rangeSales = (float) $db->query("SELECT SUM(total_amount) FROM sales_orders WHERE DATE(order_date) BETWEEN '{$startDate}' AND '{$endDate}' AND status != 'cancelled'")->fetchColumn() ?: 0.00;
+
         // 1. Today's Purchase & Today's Sales
         $todaysPurchase = (float) $db->query("SELECT SUM(total_amount) FROM purchase_orders WHERE DATE(created_at) = CURDATE() AND status != 'cancelled'")->fetchColumn() ?: 0.00;
         $todaysSales = (float) $db->query("SELECT SUM(total_amount) FROM sales_orders WHERE DATE(order_date) = CURDATE() AND status != 'cancelled'")->fetchColumn() ?: 0.00;
@@ -137,11 +165,16 @@ class DashboardController extends Controller {
             'title' => 'Executive Dashboard - Enterprise ERP',
             'user' => $user,
             'role_name' => $roleName,
+            'selected_range' => $range,
+            'range_sales' => $rangeSales,
+            'range_purchase' => $rangePurchase,
             'kpis' => [
                 'todays_purchase' => $todaysPurchase,
                 'todays_sales' => $todaysSales,
                 'monthly_purchase' => $monthlyPurchase,
                 'monthly_sales' => $monthlySales,
+                'range_sales' => $rangeSales,
+                'range_purchase' => $rangePurchase,
                 'inventory_value' => $inventoryValue,
                 'total_stock_value' => $inventoryValue,
                 'pending_approvals' => $totalPendingApprovals,

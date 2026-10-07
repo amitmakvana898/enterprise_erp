@@ -117,7 +117,10 @@ $pagesToTest = [
     '/change-password' => 'Change Account Password Form',
     '/customer-portal/dashboard' => 'B2B Customer Portal',
     '/customers/statement/1' => 'Customer Financial Statement & Ledger',
-    '/suppliers/statement/1' => 'Vendor Statement of Account & Ledger'
+    '/suppliers/statement/1' => 'Vendor Statement of Account & Ledger',
+    '/reports/gst' => 'GST Compliance & GSTR-1 / GSTR-3B Tax Filing Dashboard',
+    '/dashboard?range=today' => 'Telemetry Dashboard with Date-Range Filter (Today)',
+    '/reports' => 'Enterprise Analytics & Reports Hub'
 ];
 
 echo "\n[4] Verifying All Modified Pages and Forms...\n";

@@ -14,6 +14,9 @@ $pendingApp = (int)($kpis['pending_approvals'] ?? 0);
 
 // Calculate margin %
 $grossMargin = $monthlySales > 0 ? (($monthlySales - $monthlyPurchase) / $monthlySales) * 100 : 0;
+$selected_range = $selected_range ?? 'this_month';
+$range_sales = $range_sales ?? $monthlySales;
+$range_purchase = $range_purchase ?? $monthlyPurchase;
 ?>
 
 <!-- Page Header with Print & Quick Action Controls -->
@@ -27,11 +30,42 @@ $grossMargin = $monthlySales > 0 ? (($monthlySales - $monthlyPurchase) / $monthl
         </p>
     </div>
 
-    <!-- Quick Actions Toolbar -->
-    <div class="d-flex gap-2">
+    <!-- Date Range & Quick Actions Toolbar -->
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="btn-group btn-group-sm shadow-sm" role="group">
+            <a href="<?= url('/dashboard?range=today') ?>" class="btn <?= ($selected_range === 'today') ? 'btn-primary text-white' : 'btn-outline-secondary' ?> fw-semibold">Today</a>
+            <a href="<?= url('/dashboard?range=this_week') ?>" class="btn <?= ($selected_range === 'this_week') ? 'btn-primary text-white' : 'btn-outline-secondary' ?> fw-semibold">This Week</a>
+            <a href="<?= url('/dashboard?range=this_month') ?>" class="btn <?= ($selected_range === 'this_month') ? 'btn-primary text-white' : 'btn-outline-secondary' ?> fw-semibold">This Month</a>
+            <a href="<?= url('/dashboard?range=this_year') ?>" class="btn <?= ($selected_range === 'this_year') ? 'btn-primary text-white' : 'btn-outline-secondary' ?> fw-semibold">This Year</a>
+            <a href="<?= url('/dashboard?range=all') ?>" class="btn <?= ($selected_range === 'all') ? 'btn-primary text-white' : 'btn-outline-secondary' ?> fw-semibold">All Time</a>
+        </div>
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm fw-bold">
-            <i class="bi bi-printer me-1"></i> Print Report
+            <i class="bi bi-printer me-1"></i> Print
         </button>
+    </div>
+</div>
+
+<!-- Date Range Dynamic Performance Metric Ribbon -->
+<div class="card border-0 shadow-sm p-3 mb-4 rounded-3" style="background: linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(99,102,241,0.06) 100%); border-left: 4px solid #2563eb !important;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="p-2 rounded-3 bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-calendar3-range fs-5"></i>
+            </div>
+            <div>
+                <span class="text-primary small fw-bold text-uppercase" style="letter-spacing:0.04em;">Performance Filter: <?= ucwords(str_replace('_', ' ', $selected_range)) ?></span>
+                <div class="fs-6 fw-bold" style="color:var(--text-primary);">
+                    Sales Revenue: <span class="text-success"><?= format_currency($range_sales) ?></span> 
+                    <span class="text-secondary mx-2">•</span> 
+                    Procurement Purchases: <span class="text-info"><?= format_currency($range_purchase) ?></span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <span class="badge bg-primary bg-opacity-15 text-primary border border-primary border-opacity-25 px-2.5 py-1.5 fw-bold">
+                <i class="bi bi-lightning-charge-fill me-1"></i> Live Real-Time Telemetry
+            </span>
+        </div>
     </div>
 </div>
 

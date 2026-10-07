@@ -34,6 +34,9 @@
 
     <!-- Export Action Options -->
     <div class="page-header-actions d-flex flex-wrap align-items-center gap-2">
+        <a href="<?= url('/reports/gst') ?>" class="btn btn-warning text-dark btn-sm fw-bold shadow-sm" title="View GSTR-1, GSTR-3B and HSN Tax Breakdown">
+            <i class="bi bi-receipt-cutoff me-1"></i> GST & Tax Returns (GSTR-1)
+        </a>
         <a href="<?= url('/reports/export-pdf?' . http_build_query($_GET)) ?>" target="_blank" class="btn btn-outline-danger btn-sm fw-bold">
             <i class="bi bi-file-earmark-pdf-fill me-1"></i> Export PDF
         </a>

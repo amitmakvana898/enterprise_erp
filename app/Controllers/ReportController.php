@@ -373,4 +373,82 @@ class ReportController extends Controller {
         fclose($output);
         exit;
     }
+
+    /**
+     * GST / Tax Filing Summary & Reconciliation Engine (GSTR-1 & GSTR-3B)
+     */
+    public function gst(): void {
+        if (!has_permission('reports.view')) {
+            Session::setFlash('error', 'Access Denied: You do not have permission to view Tax Reports!', 'danger');
+            (new Response())->redirect(url('/dashboard'));
+            return;
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Outward Supplies (GSTR-1 Sales Invoices)
+        $outwardInvoices = $db->query("
+            SELECT si.id, si.invoice_no, si.invoice_date, c.name AS customer_name, c.gstin AS customer_gstin,
+                   si.subtotal AS taxable_value, si.tax_amount, si.total_amount, si.status
+            FROM sales_invoices si
+            JOIN customers c ON si.customer_id = c.id
+            ORDER BY si.invoice_date DESC, si.id DESC
+        ")->fetchAll();
+
+        // 2. Inward Supplies (GSTR-2B / ITC Purchase Invoices)
+        $inwardInvoices = $db->query("
+            SELECT pi.id, pi.invoice_no, pi.invoice_date, s.name AS supplier_name, s.gstin AS supplier_gstin,
+                   pi.subtotal AS taxable_value, pi.tax_amount, pi.total_amount, pi.status
+            FROM purchase_invoices pi
+            JOIN suppliers s ON pi.supplier_id = s.id
+            ORDER BY pi.invoice_date DESC, pi.id DESC
+        ")->fetchAll();
+
+        // 3. HSN-wise Outward Tax Breakdown
+        $hsnSummary = $db->query("
+            SELECT COALESCE(p.hsn_code, '61091000') AS hsn_code,
+                   c.name AS category_name,
+                   SUM(soi.qty) AS total_qty,
+                   SUM(soi.total_price) AS taxable_value,
+                   p.tax_rate,
+                   SUM(soi.total_price * (p.tax_rate / 100)) AS total_tax,
+                   SUM(soi.total_price * (p.tax_rate / 200)) AS cgst,
+                   SUM(soi.total_price * (p.tax_rate / 200)) AS sgst
+            FROM sales_order_items soi
+            JOIN products p ON soi.product_id = p.id
+            LEFT JOIN categories c ON p.category_id = c.id
+            GROUP BY p.hsn_code, p.tax_rate, c.name
+            ORDER BY taxable_value DESC
+        ")->fetchAll();
+
+        // Compute Totals
+        $totalOutputTaxable = 0;
+        $totalOutputTax = 0;
+        foreach ($outwardInvoices as $out) {
+            $totalOutputTaxable += (float)$out['taxable_value'];
+            $totalOutputTax += (float)$out['tax_amount'];
+        }
+
+        $totalInputTaxable = 0;
+        $totalInputTax = 0;
+        foreach ($inwardInvoices as $in) {
+            $totalInputTaxable += (float)$in['taxable_value'];
+            $totalInputTax += (float)$in['tax_amount'];
+        }
+
+        $netTaxPayable = max(0, $totalOutputTax - $totalInputTax);
+
+        $this->render('reports/gst', [
+            'title' => 'GST & Tax Compliance Dashboard (GSTR-1 & GSTR-3B)',
+            'outwardInvoices' => $outwardInvoices,
+            'inwardInvoices' => $inwardInvoices,
+            'hsnSummary' => $hsnSummary,
+            'totalOutputTaxable' => $totalOutputTaxable,
+            'totalOutputTax' => $totalOutputTax,
+            'totalInputTaxable' => $totalInputTaxable,
+            'totalInputTax' => $totalInputTax,
+            'netTaxPayable' => $netTaxPayable
+        ]);
+    }
 }
+
