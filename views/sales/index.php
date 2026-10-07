@@ -224,16 +224,16 @@
 <!-- Navigation Links (Separate Pages) -->
 <div class="card rbac-card border-0 shadow-sm p-3 mb-4 rounded-3">
     <div class="d-flex flex-wrap gap-2">
-        <a href="<?= url('/sales') ?>" class="btn <?= ($activeTab === 'orders') ? 'btn-primary text-white' : 'btn-outline-secondary text-light' ?> fw-bold px-3.5 py-2">
-            <i class="bi bi-cart-check-fill me-1.5 text-warning"></i> Sales Orders & Challans (Steps 4-5)
+        <a href="<?= url('/sales') ?>" class="sales-nav-tab <?= ($activeTab === 'orders') ? 'active' : '' ?>">
+            <i class="bi bi-cart-check-fill text-warning me-1.5"></i> Sales Orders & Challans (Steps 4-5)
         </a>
-        <a href="<?= url('/sales/quotations') ?>" class="btn <?= ($activeTab === 'quotations') ? 'btn-primary text-white' : 'btn-outline-secondary text-light' ?> fw-bold px-3.5 py-2">
+        <a href="<?= url('/sales/quotations') ?>" class="sales-nav-tab <?= ($activeTab === 'quotations') ? 'active' : '' ?>">
             <i class="bi bi-file-earmark-text-fill text-info me-1.5"></i> Quotations (Steps 1-3)
         </a>
-        <a href="<?= url('/sales/invoices') ?>" class="btn <?= (in_array($activeTab, ['invoices', 'payments'])) ? 'btn-primary text-white' : 'btn-outline-secondary text-light' ?> fw-bold px-3.5 py-2">
+        <a href="<?= url('/sales/invoices') ?>" class="sales-nav-tab <?= (in_array($activeTab, ['invoices', 'payments'])) ? 'active' : '' ?>">
             <i class="bi bi-receipt-cutoff me-1.5" style="color:#A855F7;"></i> Invoices & Payments (Steps 6-7)
         </a>
-        <a href="<?= url('/sales/returns') ?>" class="btn <?= ($activeTab === 'returns') ? 'btn-primary text-white' : 'btn-outline-secondary text-light' ?> fw-bold px-3.5 py-2">
+        <a href="<?= url('/sales/returns') ?>" class="sales-nav-tab <?= ($activeTab === 'returns') ? 'active' : '' ?>">
             <i class="bi bi-arrow-counterclockwise text-danger me-1.5"></i> Sales Returns
         </a>
     </div>
@@ -499,6 +499,43 @@
     color: #0F172A !important;
 }
 
+/* ─── SALES NAVIGATION TABS (VIBRANT SAAS PILLS) ─── */
+.sales-nav-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    color: #334155;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sales-nav-tab:hover {
+    color: #2563EB !important;
+    background-color: #EFF6FF !important;
+    border-color: #93C5FD !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15) !important;
+}
+
+.sales-nav-tab.active {
+    color: #FFFFFF !important;
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    border-color: #2563EB !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+
+.sales-nav-tab.active:hover {
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+    color: #FFFFFF !important;
+}
+
+/* ─── PIPELINE STEP CARDS HOVER ─── */
 .pipeline-step-card {
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
     cursor: pointer;
@@ -507,25 +544,47 @@
     transform: translateY(-3px);
 }
 .pipeline-step-card:hover .card {
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.18) !important;
     border: 1px solid rgba(37, 99, 235, 0.4) !important;
+    background-color: #F8FAFC !important;
 }
 .pipeline-step-card:active {
     transform: translateY(-1px);
 }
 
-.custom-role-pills .nav-link {
-    color: #64748B !important;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    transition: all 0.2s ease;
+/* ─── MODERN VIBRANT OUTLINE BUTTON HOVERS (PREVENT BLACK HOVER) ─── */
+.btn-outline-info:hover {
+    background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+    border-color: #0284C7 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
 }
-.custom-role-pills .nav-link.active {
-    color: #ffffff !important;
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    border-color: #2563EB !important;
+
+.btn-outline-danger:hover {
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+    border-color: #EF4444 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.btn-outline-warning:hover {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    border-color: #F59E0B !important;
+    color: #0F172A !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+}
+
+.btn-outline-success:hover {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    border-color: #10B981 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #EFF6FF !important;
+    border-color: #93C5FD !important;
+    color: #2563EB !important;
 }
 
 .rbac-matrix-table {
@@ -537,7 +596,7 @@
     color: #334155 !important;
 }
 
-/* DARK MODE OVERRIDES ([data-theme="dark"]) */
+/* ─── DARK MODE OVERRIDES ([data-theme="dark"]) ─── */
 [data-theme="dark"] .rbac-heading { color: #F8FAFC !important; }
 [data-theme="dark"] .rbac-subtext { color: #94A3B8 !important; }
 
@@ -547,9 +606,28 @@
     color: #F8FAFC !important;
 }
 
+[data-theme="dark"] .sales-nav-tab {
+    color: #94A3B8;
+    background: #0F172A;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .sales-nav-tab:hover {
+    color: #60A5FA !important;
+    background-color: rgba(37, 99, 235, 0.18) !important;
+    border-color: rgba(96, 165, 250, 0.5) !important;
+}
+
+[data-theme="dark"] .sales-nav-tab.active {
+    color: #FFFFFF !important;
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    border-color: #2563EB !important;
+}
+
 [data-theme="dark"] .pipeline-step-card:hover .card {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
     border: 1px solid rgba(99, 102, 241, 0.5) !important;
+    background-color: #1E293B !important;
 }
 
 [data-theme="dark"] .rbac-matrix-table {
