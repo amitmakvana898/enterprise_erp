@@ -16,18 +16,24 @@
     </div>
 </div>
 
-<!-- Workflow Stepper Summary Matrix (Automated 7-Step O2C Process) -->
+<?php $activeTab = $activeTab ?? 'orders'; ?>
+
+<!-- Workflow Stepper Summary Matrix (Automated 7-Step O2C Process - Interactive Cards) -->
 <div class="d-flex flex-wrap gap-2 mb-4 text-center justify-content-center">
-    <!-- Step 1 -->
-    <div class="flex-fill" style="min-width: 120px;">
-        <div class="p-2.5 rounded-3 card h-100 shadow-sm border-0">
+    <!-- Step 1: Customer RFQ -->
+    <a href="<?= url('/sales/quotations') ?>" class="flex-fill text-decoration-none pipeline-step-card" style="min-width: 130px;" title="View Customer RFQs & Quotations">
+        <div class="p-2.5 rounded-3 card h-100 shadow-sm <?= ($activeTab === 'quotations') ? 'border border-2 border-info bg-info bg-opacity-10' : 'border-0' ?>">
             <div class="small text-info fw-bold mb-1"><i class="bi bi-chat-left-dots-fill me-1"></i>1. Customer RFQ</div>
             <div class="fw-extrabold rbac-heading fs-5"><?= count(array_filter($quotations, function($q) { return strpos($q['quotation_no'], 'REQ-') !== false; })) ?></div>
-            <small class="rbac-subtext">RFQ Inquiries</small>
+            <small class="rbac-subtext d-flex align-items-center justify-content-center gap-1">
+                <span>RFQ Inquiries</span>
+                <i class="bi bi-arrow-right-short text-info"></i>
+            </small>
         </div>
-    </div>
-    <!-- Step 2 -->
-    <div class="flex-fill" style="min-width: 120px;">
+    </a>
+
+    <!-- Step 2: Inquiry Alert -->
+    <a href="<?= ($activeTab === 'orders') ? '#portal-inquiry-alert' : url('/sales#portal-inquiry-alert') ?>" class="flex-fill text-decoration-none pipeline-step-card" style="min-width: 130px;" title="View Pending Customer Requests & Inquiries">
         <div class="p-2.5 rounded-3 card h-100 shadow-sm border-0">
             <div class="small text-warning fw-bold mb-1"><i class="bi bi-exclamation-circle-fill me-1"></i>2. Inquiry Alert</div>
             <div class="fw-extrabold rbac-heading fs-5">
@@ -36,12 +42,16 @@
                     return ($st === 'pending_quote' || $st === '' || $st === 'pending') && strpos($q['quotation_no'], 'REQ-') !== false; 
                 })) ?>
             </div>
-            <small class="rbac-subtext">Pending Action</small>
+            <small class="rbac-subtext d-flex align-items-center justify-content-center gap-1">
+                <span>Pending Action</span>
+                <i class="bi bi-arrow-right-short text-warning"></i>
+            </small>
         </div>
-    </div>
-    <!-- Step 3 -->
-    <div class="flex-fill" style="min-width: 120px;">
-        <div class="p-2.5 rounded-3 card h-100 shadow-sm border-0">
+    </a>
+
+    <!-- Step 3: Admin Quote -->
+    <a href="<?= url('/sales/quotations') ?>" class="flex-fill text-decoration-none pipeline-step-card" style="min-width: 130px;" title="View Admin Quotations Issued">
+        <div class="p-2.5 rounded-3 card h-100 shadow-sm <?= ($activeTab === 'quotations') ? 'border border-2 border-primary bg-primary bg-opacity-10' : 'border-0' ?>">
             <div class="small text-primary fw-bold mb-1"><i class="bi bi-file-earmark-text-fill me-1"></i>3. Admin Quote</div>
             <div class="fw-extrabold rbac-heading fs-5">
                 <?= count(array_filter($quotations, function($q) { 
@@ -49,12 +59,16 @@
                     return $st === 'active' || $st === 'sent'; 
                 })) ?>
             </div>
-            <small class="rbac-subtext">Quotes Sent</small>
+            <small class="rbac-subtext d-flex align-items-center justify-content-center gap-1">
+                <span>Quotes Sent</span>
+                <i class="bi bi-arrow-right-short text-primary"></i>
+            </small>
         </div>
-    </div>
-    <!-- Step 4 -->
-    <div class="flex-fill" style="min-width: 120px;">
-        <div class="p-2.5 rounded-3 card h-100 shadow-sm border-0">
+    </a>
+
+    <!-- Step 4: Customer Order -->
+    <a href="<?= url('/sales') ?>" class="flex-fill text-decoration-none pipeline-step-card" style="min-width: 130px;" title="View Customer Sales Orders Placed">
+        <div class="p-2.5 rounded-3 card h-100 shadow-sm <?= ($activeTab === 'orders') ? 'border border-2 border-success bg-success bg-opacity-10' : 'border-0' ?>">
             <div class="small text-success fw-bold mb-1"><i class="bi bi-cart-check-fill me-1"></i>4. Customer Order</div>
             <div class="fw-extrabold rbac-heading fs-5">
                 <?= count(array_filter($quotations, function($q) { 
@@ -62,37 +76,52 @@
                     return $st === 'converted' || $st === 'approved'; 
                 })) ?>
             </div>
-            <small class="rbac-subtext">Orders Placed</small>
+            <small class="rbac-subtext d-flex align-items-center justify-content-center gap-1">
+                <span>Orders Placed</span>
+                <i class="bi bi-arrow-right-short text-success"></i>
+            </small>
         </div>
-    </div>
-    <!-- Step 5 -->
-    <div class="flex-fill" style="min-width: 120px;">
-        <div class="p-2.5 rounded-3 card h-100 shadow-sm border-0">
+    </a>
+
+    <!-- Step 5: Dispatch & Inv -->
+    <a href="<?= url('/sales') ?>" class="flex-fill text-decoration-none pipeline-step-card" style="min-width: 130px;" title="View Dispatch Challans & Generated Invoices">
+        <div class="p-2.5 rounded-3 card h-100 shadow-sm <?= ($activeTab === 'orders') ? 'border border-2 border-info bg-info bg-opacity-10' : 'border-0' ?>">
             <div class="small text-info fw-bold mb-1" style="color: #6366f1 !important;"><i class="bi bi-truck me-1"></i>5. Dispatch & Inv</div>
             <div class="fw-extrabold rbac-heading fs-5"><?= count($challans) ?> / <?= count($invoices) ?></div>
-            <small class="rbac-subtext">Items / Invoices</small>
+            <small class="rbac-subtext d-flex align-items-center justify-content-center gap-1">
+                <span>Items / Invoices</span>
+                <i class="bi bi-arrow-right-short text-indigo"></i>
+            </small>
         </div>
-    </div>
-    <!-- Step 6 -->
-    <div class="flex-fill" style="min-width: 120px;">
-        <div class="p-2.5 rounded-3 card h-100 shadow-sm border-0">
+    </a>
+
+    <!-- Step 6: Cust Payment -->
+    <a href="<?= url('/sales/invoices') ?>" class="flex-fill text-decoration-none pipeline-step-card" style="min-width: 130px;" title="View Customer Invoices & Paid Status">
+        <div class="p-2.5 rounded-3 card h-100 shadow-sm <?= (in_array($activeTab, ['invoices', 'payments'])) ? 'border border-2 border-purple bg-purple bg-opacity-10' : 'border-0' ?>">
             <div class="small text-purple fw-bold mb-1" style="color: #a855f7 !important;"><i class="bi bi-credit-card-2-front-fill me-1"></i>6. Cust Payment</div>
             <div class="fw-extrabold rbac-heading fs-5">
                 <?= count(array_filter($invoices, function($inv) { 
                     return strtolower(trim($inv['status'] ?? '')) === 'paid'; 
                 })) ?>
             </div>
-            <small class="rbac-subtext">Paid Invoices</small>
+            <small class="rbac-subtext d-flex align-items-center justify-content-center gap-1">
+                <span>Paid Invoices</span>
+                <i class="bi bi-arrow-right-short" style="color: #a855f7;"></i>
+            </small>
         </div>
-    </div>
-    <!-- Step 7 -->
-    <div class="flex-fill" style="min-width: 120px;">
-        <div class="p-2.5 rounded-3 card h-100 shadow-sm border-0">
+    </a>
+
+    <!-- Step 7: Settlement -->
+    <a href="<?= url('/sales/invoices#settlements-section') ?>" class="flex-fill text-decoration-none pipeline-step-card" style="min-width: 130px;" title="View Bank Settlements & Payment Receipts">
+        <div class="p-2.5 rounded-3 card h-100 shadow-sm <?= (in_array($activeTab, ['invoices', 'payments'])) ? 'border border-2 border-success bg-success bg-opacity-10' : 'border-0' ?>">
             <div class="small text-success fw-bold mb-1"><i class="bi bi-bank2 me-1"></i>7. Settlement</div>
             <div class="fw-extrabold rbac-heading fs-5"><?= count($payments) ?></div>
-            <small class="rbac-subtext">Payments Stored</small>
+            <small class="rbac-subtext d-flex align-items-center justify-content-center gap-1">
+                <span>Payments Stored</span>
+                <i class="bi bi-arrow-right-short text-success"></i>
+            </small>
         </div>
-    </div>
+    </a>
 </div>
 
 <?php
@@ -107,7 +136,7 @@
 ?>
 
 <?php if (!empty($pendingCustomerRequests)): ?>
-<div class="card border-0 shadow-sm p-4 mb-4 rounded-3" style="border-left: 4px solid #f59e0b !important;">
+<div id="portal-inquiry-alert" class="card border-0 shadow-sm p-4 mb-4 rounded-3" style="border-left: 4px solid #f59e0b !important;">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0">
             <span class="badge bg-warning text-dark me-2 font-monospace">PORTAL INQUIRY ALERT</span>
@@ -302,7 +331,15 @@
 
     <?php elseif (in_array($activeTab, ['invoices', 'payments'])): ?>
         <!-- Section 3: Invoices & Payments -->
-        <div class="card rbac-card border-0 shadow-sm p-4 rounded-3">
+        <div class="card rbac-card border-0 shadow-sm p-4 rounded-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-receipt-cutoff me-2" style="color:#A855F7;"></i>Stage 6: Customer Invoices (<?= count($invoices) ?> Total)
+                </h5>
+                <span class="badge bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25 px-2.5 py-1.5 fw-bold" style="color:#A855F7 !important; border-color: rgba(168,85,247,0.3) !important;">
+                    <i class="bi bi-credit-card-2-front me-1"></i> Billing & Receivables
+                </span>
+            </div>
             <div class="table-responsive">
                 <table class="table rbac-matrix-table table-hover align-middle mb-0">
                     <thead>
@@ -341,6 +378,60 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr><td colspan="7" class="text-center py-4 rbac-subtext">No Invoices found.</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 3.2: Stage 7 Settlement & Payment Receipts -->
+        <div id="settlements-section" class="card rbac-card border-0 shadow-sm p-4 rounded-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-bank2 text-success me-2"></i>Stage 7: Settlement & Payment Receipts (<?= count($payments) ?> Stored)
+                </h5>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5 fw-bold">
+                    <i class="bi bi-shield-check me-1"></i> Bank Reconciled
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="table rbac-matrix-table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Payment Ref #</th>
+                            <th>Invoice Ref</th>
+                            <th>Customer Name</th>
+                            <th>Payment Date</th>
+                            <th>Payment Mode</th>
+                            <th>Amount Settled</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($payments)): ?>
+                            <?php foreach ($payments as $p): ?>
+                                <tr>
+                                    <td class="fw-bold text-success font-monospace fs-6">
+                                        <i class="bi bi-shield-fill-check me-1.5"></i><?= e($p['payment_no'] ?? ('PAY-' . $p['id'])) ?>
+                                    </td>
+                                    <td class="fw-semibold text-info font-monospace"><?= e($p['invoice_no'] ?? '-') ?></td>
+                                    <td class="fw-semibold rbac-heading"><?= e($p['customer_name']) ?></td>
+                                    <td class="rbac-subtext small"><?= !empty($p['payment_date']) ? date('d M Y', strtotime($p['payment_date'])) : '-' ?></td>
+                                    <td>
+                                        <span class="badge bg-secondary bg-opacity-20 text-light border border-secondary border-opacity-25 px-2.5 py-1 fw-bold">
+                                            <i class="bi bi-wallet2 me-1"></i><?= strtoupper(e($p['payment_mode'] ?? 'Online / Bank')) ?>
+                                        </span>
+                                    </td>
+                                    <td class="fw-extrabold text-success fs-6"><?= format_currency($p['amount'] ?? 0) ?></td>
+                                    <td>
+                                        <span class="badge bg-success px-2.5 py-1.5 fw-bold">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Settlement Complete
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr><td colspan="7" class="text-center py-4 rbac-subtext">No Payment settlements recorded yet.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -408,6 +499,21 @@
     color: #0F172A !important;
 }
 
+.pipeline-step-card {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+    cursor: pointer;
+}
+.pipeline-step-card:hover {
+    transform: translateY(-3px);
+}
+.pipeline-step-card:hover .card {
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15) !important;
+    border: 1px solid rgba(37, 99, 235, 0.4) !important;
+}
+.pipeline-step-card:active {
+    transform: translateY(-1px);
+}
+
 .custom-role-pills .nav-link {
     color: #64748B !important;
     background: #F8FAFC;
@@ -439,6 +545,11 @@
     background: #1E293B !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     color: #F8FAFC !important;
+}
+
+[data-theme="dark"] .pipeline-step-card:hover .card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(99, 102, 241, 0.5) !important;
 }
 
 [data-theme="dark"] .rbac-matrix-table {
