@@ -116,3 +116,14 @@ if (!function_exists('csrf_field')) {
     }
 }
 
+if (!function_exists('get_setting')) {
+    function get_setting(string $key, ?string $default = null): ?string {
+        try {
+            return \App\Models\SystemSetting::get($key, $default);
+        } catch (\Throwable $e) {
+            return $default;
+        }
+    }
+}
+
+
