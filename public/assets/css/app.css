@@ -1119,6 +1119,39 @@ div.text-white:not(.btn *):not(.badge *), p.text-white:not(.btn *):not(.badge *)
   color: var(--text-primary) !important;
 }
 
+/* Universal Form Control & Input Group Dual-Theme Adaptations */
+.input-group-text {
+  background-color: var(--bg-surface-elev) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .input-group-text {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+.form-control::placeholder,
+.form-select::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.65 !important;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--bg-surface-elev) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--primary) !important;
+}
+
 /* 2. LIGHT MODE ADAPTIVE ELEVATIONS (Prevents hardcoded dark elements from breaking Light theme) */
 [data-theme="light"] .card.bg-dark,
 body:not([data-theme="dark"]) .card.bg-dark {

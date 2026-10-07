@@ -1,7 +1,7 @@
 <!-- Page Header -->
 <div class="page-header d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
-        <h3 class="page-title mb-1"><i class="bi bi-box-seam-fill text-primary me-2"></i>Create Master Product Item</h3>
+        <h3 class="fw-bold mb-1"><i class="bi bi-box-seam-fill text-primary me-2"></i>Create Master Product Item</h3>
         <p class="text-muted small mb-0">Smart item catalog engine: Auto-generate SKUs, barcodes, HSN tax codes, and dynamic variant attributes</p>
     </div>
     <a href="<?= url('/products') ?>" class="btn btn-outline-secondary btn-sm fw-bold">
@@ -9,7 +9,7 @@
     </a>
 </div>
 
-<div class="card shadow-sm border p-4">
+<div class="card shadow-sm border p-4 mb-4">
     <form action="<?= url('/products/store') ?>" method="POST" id="product_form">
         <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
 
@@ -21,7 +21,7 @@
                 <label class="form-label small fw-semibold">Product Name *</label>
                 <div class="input-group">
                     <input type="text" name="name" id="product_name" class="form-control fw-semibold" placeholder="e.g. Industrial Power Drill, Cotton T-Shirt, XPS 15 Laptop" required autofocus>
-                    <span class="input-group-text text-info" id="name_status_icon"><i class="bi bi-magic"></i></span>
+                    <span class="input-group-text bg-body-tertiary border" id="name_status_icon"><i class="bi bi-magic text-info"></i></span>
                 </div>
                 <small class="text-muted d-block mt-1" style="font-size:0.75rem;">Type item name to auto-detect category & attributes</small>
             </div>
@@ -53,7 +53,12 @@
         <div class="row g-3 mb-4">
             <div class="col-md-4">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label small fw-semibold mb-0">Category *</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label small fw-semibold mb-0">Category *</label>
+                        <span id="category_detected_success" class="badge rounded-pill bg-success-subtle text-success border border-success border-opacity-25 d-none px-2 py-0.5" style="font-size: 0.72rem; font-weight: 600;">
+                            <i class="bi bi-magic me-1"></i> Auto-Matched: <span id="detected_cat_name"></span>
+                        </span>
+                    </div>
                     <button type="button" class="btn btn-link p-0 text-info small text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
                         <i class="bi bi-plus-circle me-1"></i> Add Category
                     </button>
@@ -67,22 +72,17 @@
                     <?php endforeach; ?>
                 </select>
 
-                <!-- Category Not Found Warning & 1-Click Quick Create Banner -->
-                <div id="category_not_found_alert" class="mt-2.5 p-3 rounded-3 shadow-lg d-none" style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); backdrop-filter: blur(8px);">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="small fw-semibold" style="color:var(--text-primary);">
-                            <i class="bi bi-exclamation-triangle-fill text-warning me-1.5 fs-6"></i> Category for "<strong class="text-warning font-monospace" id="suggested_cat_name">...</strong>" not found!
-                        </div>
-                        <button type="button" class="btn btn-warning text-dark btn-sm fw-bold px-3 py-1.5 rounded-pill shadow-sm" onclick="quickCreateSuggestedCategory()">
-                            <i class="bi bi-plus-circle-fill me-1"></i> Create Category Now
-                        </button>
-                    </div>
-                </div>
-                <!-- Category Auto-Detected Success Badge -->
-                <div id="category_detected_success" class="mt-2.5 p-2 px-3 rounded-3 bg-success bg-opacity-15 border border-success border-opacity-30 text-success small fw-bold d-none">
-                    <i class="bi bi-check-circle-fill me-1"></i> Category Auto-Detected!
+                <!-- Category Not Found Warning & 1-Click Quick Create Helper -->
+                <div id="category_not_found_alert" class="mt-1 d-flex align-items-center justify-content-between px-2 py-1 rounded bg-warning bg-opacity-10 border border-warning border-opacity-20 small d-none" style="font-size: 0.75rem;">
+                    <span class="text-warning-emphasis fw-medium">
+                        <i class="bi bi-info-circle me-1"></i> New: "<span id="suggested_cat_name" class="fw-bold">...</span>"
+                    </span>
+                    <button type="button" class="btn btn-link p-0 text-warning fw-bold text-decoration-none ms-2" onclick="quickCreateSuggestedCategory()" style="font-size:0.75rem;">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Quick Add
+                    </button>
                 </div>
             </div>
+
             <div class="col-md-4">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label small fw-semibold mb-0">Brand</label>
@@ -97,6 +97,7 @@
                     <?php endforeach; ?>
                 </select>
             </div>
+
             <div class="col-md-4">
                 <label class="form-label small fw-semibold mb-1">Unit of Measure (UOM) *</label>
                 <select name="unit_id" class="form-select" required>
@@ -108,14 +109,14 @@
         </div>
 
         <!-- Dynamic Category-Specific Attributes Card -->
-        <div id="dynamic_attributes_card" class="card shadow-sm border p-4 mb-4 rounded-3" style="background:var(--bg-page);">
+        <div id="dynamic_attributes_card" class="card shadow-sm border p-4 mb-4 rounded-3 bg-body-tertiary">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-sliders text-primary fs-5"></i>
                     <h6 class="fw-bold mb-0">Dynamic Product Attributes & Variant Specifications</h6>
                 </div>
                 <span id="auto_matched_badge" class="badge bg-primary bg-opacity-20 text-primary border border-primary border-opacity-30">
-                    <i class="bi bi-check-circle-fill me-1"></i> Active Attribute Template
+                    <i class="bi bi-check-circle-fill me-1"></i> Dynamic Specifications
                 </span>
             </div>
             <div id="attributes_container" class="row g-3">
@@ -138,11 +139,11 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-semibold">HSN / SAC Code</label>
-                <input type="text" name="hsn_code" class="form-control font-monospace" placeholder="84713010" value="84713010">
+                <input type="text" name="hsn_code" id="hsn_code_input" class="form-control font-monospace" placeholder="84713010" value="84713010">
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-semibold">Tax Bracket % *</label>
-                <select name="gst_rate" class="form-select fw-bold">
+                <select name="gst_rate" id="gst_rate_select" class="form-select fw-bold">
                     <option value="0.00">0% (Exempt)</option>
                     <option value="5.00">5% GST</option>
                     <option value="12.00">12% GST</option>
@@ -154,7 +155,7 @@
         </div>
 
         <!-- Section 4: Stock Re-order Thresholds -->
-        <div class="row g-3 mb-4 p-3 rounded-3 border" style="background:var(--bg-page);">
+        <div class="row g-3 mb-4 p-3 rounded-3 border bg-body-tertiary">
             <div class="col-md-4">
                 <label class="form-label small fw-semibold">Reorder Threshold Level *</label>
                 <input type="number" name="reorder_level" class="form-control fw-bold font-monospace" value="10" placeholder="10" required>
@@ -173,7 +174,7 @@
         <!-- Description -->
         <div class="mb-4">
             <label class="form-label small fw-semibold">Item Specification & Notes</label>
-            <textarea name="description" class="form-control" rows="3" placeholder="Enter technical specifications, warranty, material composition..."></textarea>
+            <textarea name="description" id="product_description" class="form-control" rows="3" placeholder="Enter technical specifications, warranty, material composition..."></textarea>
         </div>
 
         <!-- Action Buttons -->
@@ -240,6 +241,35 @@
 
 <script>
 let lastSuggestedCategory = '';
+const masterAttributesList = <?= json_encode($allAttributes ?? []) ?>;
+
+// Category Attribute Templates
+const categoryAttributeTemplates = {
+    'clothing': [
+        { name: 'Size', code: 'size', type: 'select', options: ['S', 'M', 'L', 'XL', 'XXL', '3XL'] },
+        { name: 'Color', code: 'color', type: 'select', options: ['Black', 'Navy Blue', 'White', 'Charcoal Grey', 'Olive Green', 'Red'] },
+        { name: 'Fabric / Material', code: 'material', type: 'select', options: ['100% Combed Cotton', 'Polyester Blend', 'Denim', 'Linen', 'Silk Blend'] },
+        { name: 'Fit Type', code: 'fit', type: 'select', options: ['Regular Fit', 'Slim Fit', 'Oversized', 'Tailored Fit'] }
+    ],
+    'electronics': [
+        { name: 'Processor / Chipset', code: 'processor', type: 'text', placeholder: 'e.g. Intel Core i7 13th Gen / Apple M3' },
+        { name: 'RAM Memory', code: 'ram', type: 'select', options: ['8 GB DDR5', '16 GB DDR5', '32 GB DDR5', '64 GB Unified'] },
+        { name: 'Storage Capacity', code: 'storage', type: 'select', options: ['256 GB NVMe SSD', '512 GB NVMe SSD', '1 TB NVMe SSD', '2 TB SSD'] },
+        { name: 'Warranty Period', code: 'warranty', type: 'select', options: ['1 Year Manufacturer Warranty', '2 Years Extended Warranty', '3 Years On-Site'] }
+    ],
+    'hardware': [
+        { name: 'Power Rating (Watts/Volts)', code: 'power', type: 'text', placeholder: 'e.g. 750W / 240V' },
+        { name: 'Material Grade', code: 'material_grade', type: 'select', options: ['Heavy Duty Carbon Steel', 'Stainless Steel 304', 'Reinforced Polymer'] },
+        { name: 'Certification Standard', code: 'cert', type: 'select', options: ['ISO 9001:2015', 'CE Certified', 'ISI Marked'] },
+        { name: 'Warranty', code: 'warranty', type: 'select', options: ['6 Months', '1 Year Industrial Warranty', '2 Years Warranty'] }
+    ],
+    'footwear': [
+        { name: 'Shoe Size (UK/India)', code: 'shoe_size', type: 'select', options: ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'] },
+        { name: 'Primary Color', code: 'color', type: 'select', options: ['Black', 'Brown', 'Tan', 'White', 'Grey'] },
+        { name: 'Sole Material', code: 'sole', type: 'select', options: ['EVA Cushion Sole', 'Anti-Skid Rubber', 'Polyurethane (PU)', 'Leather Sole'] },
+        { name: 'Upper Material', code: 'upper', type: 'select', options: ['Genuine Leather', 'Synthetic Mesh', 'Suede', 'Canvas'] }
+    ]
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.getElementById('product_name');
@@ -248,6 +278,9 @@ document.addEventListener('DOMContentLoaded', function() {
             autoDetectCategory(this.value.trim());
         });
     }
+
+    // Initialize default attributes
+    renderDynamicAttributes();
 });
 
 function autoDetectCategory(name) {
@@ -273,14 +306,28 @@ function autoDetectCategory(name) {
         }
     }
 
+    // Auto-generate SKU & Barcode if currently empty
+    const skuInput = document.getElementById('product_sku');
+    if (skuInput && !skuInput.value.trim()) {
+        generateAutoSku();
+    }
+    const barcodeInput = document.getElementById('product_barcode');
+    if (barcodeInput && !barcodeInput.value.trim()) {
+        generateAutoBarcode();
+    }
+
     if (matchedOptionValue) {
         select.value = matchedOptionValue;
         document.getElementById('category_not_found_alert').classList.add('d-none');
-        document.getElementById('category_detected_success').classList.remove('d-none');
-        document.getElementById('category_detected_success').innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Auto-Detected Category: <strong>' + matchedCategoryName + '</strong>';
-        if (typeof renderDynamicAttributes === 'function') {
-            renderDynamicAttributes(matchedCategoryName);
-        }
+        const successEl = document.getElementById('category_detected_success');
+        document.getElementById('detected_cat_name').innerText = matchedCategoryName;
+        successEl.classList.remove('d-none');
+
+        // Suggest HSN Code based on category
+        autoSetHsnCode(nameLower, matchedCategoryName);
+
+        // Render dynamic attributes
+        renderDynamicAttributes(matchedCategoryName);
     } else {
         // Category Not Found! Extract keyword to suggest creation
         const words = name.split(/\s+/).filter(w => w.length > 2);
@@ -290,22 +337,103 @@ function autoDetectCategory(name) {
         document.getElementById('suggested_cat_name').innerText = lastSuggestedCategory;
         document.getElementById('category_not_found_alert').classList.remove('d-none');
         document.getElementById('category_detected_success').classList.add('d-none');
+        renderDynamicAttributes(name);
+    }
+}
+
+function autoSetHsnCode(nameLower, catName) {
+    const hsnInput = document.getElementById('hsn_code_input');
+    if (!hsnInput) return;
+
+    const catLower = (catName || '').toLowerCase();
+    if (nameLower.includes('shirt') || nameLower.includes('cloth') || nameLower.includes('apparel') || catLower.includes('cloth')) {
+        hsnInput.value = '61091000'; // Cotton Apparel
+    } else if (nameLower.includes('laptop') || nameLower.includes('computer') || catLower.includes('electronic')) {
+        hsnInput.value = '84713010'; // Personal Computers & Laptops
+    } else if (nameLower.includes('shoe') || catLower.includes('footwear')) {
+        hsnInput.value = '64039990'; // Footwear
+    } else if (nameLower.includes('drill') || nameLower.includes('tool') || catLower.includes('hardware')) {
+        hsnInput.value = '84672100'; // Electric Power Tools
     }
 }
 
 function isKeywordMatch(nameLower, catName) {
     const map = {
-        'shirt': 'clothing', 't-shirt': 'clothing', 'jean': 'clothing', 'pant': 'clothing', 'apparel': 'clothing',
-        'phone': 'electronics', 'laptop': 'electronics', 'tv': 'electronics', 'computer': 'electronics',
-        'shoe': 'footwear', 'sneaker': 'footwear', 'boot': 'footwear',
-        'drill': 'tool', 'wrench': 'tool', 'hammer': 'tool', 'hardware': 'tool',
-        'chair': 'furniture', 'table': 'furniture', 'desk': 'furniture',
-        'car': 'automotive', 'tire': 'automotive', 'oil': 'automotive'
+        'shirt': 'cloth', 'tshirt': 'cloth', 't-shirt': 'cloth', 'jean': 'cloth', 'pant': 'cloth', 'apparel': 'cloth', 'dress': 'cloth', 'hoodie': 'cloth',
+        'phone': 'electron', 'laptop': 'electron', 'tv': 'electron', 'computer': 'electron', 'monitor': 'electron', 'mobile': 'electron',
+        'shoe': 'footwear', 'sneaker': 'footwear', 'boot': 'footwear', 'sandal': 'footwear',
+        'drill': 'tool', 'wrench': 'tool', 'hammer': 'tool', 'hardware': 'tool', 'saw': 'tool',
+        'chair': 'furniture', 'table': 'furniture', 'desk': 'furniture', 'sofa': 'furniture',
+        'car': 'automotive', 'tire': 'automotive', 'oil': 'automotive', 'battery': 'automotive'
     };
     for (let k in map) {
         if (nameLower.includes(k) && catName.includes(map[k])) return true;
     }
     return false;
+}
+
+function renderDynamicAttributes(categoryHint = '') {
+    const container = document.getElementById('attributes_container');
+    if (!container) return;
+
+    const hintLower = (categoryHint || '').toLowerCase();
+    let matchedKey = null;
+
+    if (hintLower.includes('cloth') || hintLower.includes('apparel') || hintLower.includes('fashion') || hintLower.includes('shirt')) {
+        matchedKey = 'clothing';
+    } else if (hintLower.includes('electron') || hintLower.includes('computer') || hintLower.includes('laptop') || hintLower.includes('phone')) {
+        matchedKey = 'electronics';
+    } else if (hintLower.includes('tool') || hintLower.includes('hardware') || hintLower.includes('machin') || hintLower.includes('drill')) {
+        matchedKey = 'hardware';
+    } else if (hintLower.includes('foot') || hintLower.includes('shoe')) {
+        matchedKey = 'footwear';
+    }
+
+    let attrsToRender = [];
+    if (matchedKey && categoryAttributeTemplates[matchedKey]) {
+        attrsToRender = categoryAttributeTemplates[matchedKey];
+    } else if (masterAttributesList && masterAttributesList.length > 0) {
+        attrsToRender = masterAttributesList.map(a => ({
+            name: a.name,
+            code: a.code,
+            type: a.type || 'text',
+            options: typeof a.options === 'string' ? JSON.parse(a.options || '[]') : (a.options || [])
+        }));
+    } else {
+        // Fallback default generic template
+        attrsToRender = [
+            { name: 'Model / Variant', code: 'model_variant', type: 'text', placeholder: 'e.g. Standard V2.0 / Pro Edition' },
+            { name: 'Color / Finish', code: 'color', type: 'select', options: ['Standard Black', 'Silver Metallic', 'Matte White', 'Navy Blue'] },
+            { name: 'Item Weight / Dimension', code: 'dimension', type: 'text', placeholder: 'e.g. 500g / 15x10x5 cm' },
+            { name: 'Warranty / Shelf Life', code: 'warranty', type: 'select', options: ['6 Months Warranty', '1 Year Standard Warranty', '2 Years Warranty', 'No Warranty'] }
+        ];
+    }
+
+    let html = '';
+    attrsToRender.forEach(attr => {
+        let inputHtml = '';
+        if (attr.type === 'select' && attr.options && attr.options.length > 0) {
+            inputHtml = `<select name="attributes[${attr.code}]" class="form-select fw-semibold">`;
+            inputHtml += `<option value="">-- Select ${attr.name} --</option>`;
+            attr.options.forEach(opt => {
+                inputHtml += `<option value="${opt}">${opt}</option>`;
+            });
+            inputHtml += `</select>`;
+        } else {
+            inputHtml = `<input type="text" name="attributes[${attr.code}]" class="form-control" placeholder="${attr.placeholder || 'Specify ' + attr.name + '...'}">`;
+        }
+
+        html += `
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold mb-1">
+                    <i class="bi bi-tag-fill text-warning me-1"></i>${attr.name}
+                </label>
+                ${inputHtml}
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
 
 function capitalizeFirstLetter(string) {
@@ -325,8 +453,13 @@ function quickCreateSuggestedCategory() {
 }
 
 function onCategoryManualSelect() {
+    const select = document.getElementById('category_select');
+    const selectedText = select.options[select.selectedIndex]?.text || '';
     document.getElementById('category_not_found_alert').classList.add('d-none');
     document.getElementById('category_detected_success').classList.add('d-none');
+    if (selectedText) {
+        renderDynamicAttributes(selectedText);
+    }
 }
 
 function generateAutoSku() {
@@ -335,6 +468,7 @@ function generateAutoSku() {
     if (name.length >= 3) {
         prefix = name.substring(0, 4).replace(/[^a-zA-Z]/g, '').toUpperCase();
     }
+    if (!prefix || prefix.length < 2) prefix = 'ITEM';
     const rand = Math.floor(1000 + Math.random() * 9000);
     document.getElementById('product_sku').value = 'PROD-' + prefix + '-' + rand;
 }
